@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ethers } from 'ethers';
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
@@ -11,18 +11,32 @@ function App() {
   const [candidate1, setCandidate1] = useState('');
   const [candidate2, setCandidate2] = useState('');
   const[votingStarted, setVotingStarted] = useState(false);
-  const [votes, setVotes] = useState<Record<string, number>>({});
   const [winner, setWinner] = useState('');
   const [account, setCurrentAccount] = useState<string>("");
   const [contract, setContract] = useState<ethers.Contract | null>(null);
-  const contractAddress = "0x8464135c8F25Da09e49BC8782676a84730C318bC";
+  const contractAddress = "0x6E6587b9751Dd8f0db64FcaddA228d362F635b8b";
   let signer;
 
+  useEffect(() => {
+    console.log("Updated winner:", winner);
+  }, [winner]);
+
   const start_voting = () => {
+    if (account === '') { 
+      alert('Please connect to MetaMask');
+      return;
+    }
+
+    if (candidate1 === '' || candidate2 === '') {
+      alert('Please enter names for both candidates');
+      return;
+    }
+
     if (contract) {
       contract.start_voting(candidate1, candidate2);
     } else {
-      console.error('Contract is not defined');
+      alert('Contract is not defined');
+      return;
     }
     console.log('Voting has started');
     setVotingStarted(true);
@@ -43,10 +57,12 @@ function App() {
         const end = await contract.endVoting();
         await end.wait();
         console.log("Voting has ended:", end);
-        setVotingStarted(false);
         const winnerName = await contract.declareWinner();
-        console.log("Winner declared:", winnerName);
-        setWinner(winnerName);
+        const name = winnerName.toString();
+        setWinner(name);
+        console.log("Winner declared:", name);
+        
+
       } 
       catch (error) {
         console.error("Error is" + error);
@@ -72,7 +88,7 @@ function App() {
       signer = provider.getSigner();
   
       // Create a new contract instance using the ABI and address from Foundry
-      const contract = new ethers.Contract(contractAddress, vote, signer);
+      const contract = new ethers.Contract(contractAddress, vote.abi, signer);
       setContract(contract);
     } catch (error) {
       console.error(error);
@@ -97,14 +113,20 @@ function App() {
           <>
         <div className='d-flex flex-column justify-content-center gap-3 space-y-4'>
         <h2 className='text-center mt-4'> Voting for {candidate1} and {candidate2} </h2>
-        
+        {winner == '' && (
+          <>
         <div className='d-flex justify-content-center gap-3'>
         <button onClick={() => {voteForCandidate(candidate1)}}> Vote for {candidate1} </button>
         <button onClick={() => {voteForCandidate(candidate2)}}> Vote for {candidate2} </button>
         </div>
-        <button onClick={declareWinner}> End Voting </button>
+        <button onClick={declareWinner}> End Voting </button> 
+        </>
+        )} 
         {winner !== '' && (
-          <h3 className='text-center'> {winner}! </h3>
+          console.log("updaing winner", winner),
+          <h3 className='text-center'>
+          {winner !== "Tie" ? `Winner: ${winner}` : "It's a tie!"}
+          </h3>
         )}
         </div>
         </> )} 
