@@ -14,7 +14,7 @@ function App() {
   const [winner, setWinner] = useState('');
   const [account, setCurrentAccount] = useState<string>("");
   const [contract, setContract] = useState<ethers.Contract | null>(null);
-  const contractAddress = "0x6E6587b9751Dd8f0db64FcaddA228d362F635b8b";
+  const contractAddress = "0x307C78C8077Cf0Bf5a94952eC48dB0A2778c04e5";
   let signer;
 
   useEffect(() => {
